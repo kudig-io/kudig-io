@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kudig - Kubernetes Diagnostic Toolkit</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234169E1'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z'/></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #4169E1;
+            --primary-dark: #3155C7;
+            --secondary: #1E40AF;
+            --text-primary: #1F2937;
+            --text-secondary: #6B7280;
+            --bg-light: #F9FAFB;
+            --bg-white: #FFFFFF;
+            --border: #E5E7EB;
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: var(--bg-light);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header */
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--border);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo svg {
+            width: 32px;
+            height: 32px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+        }
+
+        .nav-links a {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .github-btn {
+            background: var(--primary);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .github-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(65, 105, 225, 0.3);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 180px 0 120px;
+            text-align: center;
+            background: linear-gradient(180deg, #ffffff 0%, #F9FAFB 100%);
+        }
+
+        .hero h1 {
+            font-size: 64px;
+            font-weight: 800;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 24px;
+            letter-spacing: -1px;
+        }
+
+        .hero-subtitle {
+            font-size: 24px;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+            font-weight: 400;
+        }
+
+        .hero-description {
+            max-width: 800px;
+            margin: 0 auto 48px;
+            font-size: 18px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .hero-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            padding: 16px 40px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(65, 105, 225, 0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--text-primary);
+            padding: 16px 40px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            border: 2px solid var(--border);
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* Features Section */
+        .features {
+            padding: 100px 0;
+            background: white;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-header h2 {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+
+        .section-header p {
+            font-size: 18px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 32px;
+            margin-bottom: 60px;
+        }
+
+        .feature-card {
+            background: var(--bg-light);
+            padding: 40px;
+            border-radius: 16px;
+            transition: all 0.3s;
+            border: 1px solid transparent;
+        }
+
+        .feature-card:hover {
+            background: white;
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            border-color: var(--border);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+
+        .feature-icon svg {
+            width: 32px;
+            height: 32px;
+            color: white;
+        }
+
+        .feature-card h3 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Architecture Section */
+        .architecture {
+            padding: 100px 0;
+            background: var(--bg-light);
+        }
+
+        .arch-diagram {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            margin-top: 60px;
+        }
+
+        .arch-layer {
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            border-top: 4px solid var(--primary);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s;
+        }
+
+        .arch-layer:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+        }
+
+        .arch-layer h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--primary);
+        }
+
+        .arch-layer ul {
+            list-style: none;
+        }
+
+        .arch-layer li {
+            padding: 8px 0;
+            color: var(--text-secondary);
+            font-size: 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .arch-layer li:last-child {
+            border-bottom: none;
+        }
+
+        .arch-layer li::before {
+            content: "→";
+            color: var(--primary);
+            margin-right: 8px;
+        }
+
+        .arch-table {
+            margin-top: 60px;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        }
+
+        .arch-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .arch-table th {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .arch-table td {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .arch-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .arch-table tr:hover {
+            background: var(--bg-light);
+        }
+
+        /* Design Logic Section */
+        .design-logic {
+            padding: 100px 0;
+            background: white;
+        }
+
+        .logic-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 32px;
+        }
+
+        .logic-card {
+            background: var(--bg-light);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+
+        .logic-card:hover {
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+            transform: translateY(-4px);
+        }
+
+        .logic-header {
+            background: var(--gradient);
+            padding: 24px 32px;
+            color: white;
+        }
+
+        .logic-header h3 {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .logic-body {
+            padding: 32px;
+        }
+
+        .logic-body p {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin-bottom: 16px;
+        }
+
+        .logic-body strong {
+            color: var(--text-primary);
+        }
+
+        /* Scenarios Section */
+        .scenarios {
+            padding: 100px 0;
+            background: var(--bg-light);
+        }
+
+        .scenario-list {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .scenario-item {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 24px;
+            border-left: 4px solid var(--primary);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s;
+        }
+
+        .scenario-item:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            transform: translateX(8px);
+        }
+
+        .scenario-item h4 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .scenario-item p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Extension Section */
+        .extension {
+            padding: 100px 0;
+            background: white;
+        }
+
+        .extension-content {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--bg-light);
+            border-radius: 20px;
+            padding: 48px;
+            border: 2px solid var(--border);
+        }
+
+        .extension-content h3 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: var(--text-primary);
+        }
+
+        .extension-content p {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin-bottom: 24px;
+        }
+
+        .extension-steps {
+            list-style: none;
+            counter-reset: step;
+        }
+
+        .extension-steps li {
+            position: relative;
+            padding-left: 60px;
+            margin-bottom: 24px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .extension-steps li::before {
+            counter-increment: step;
+            content: counter(step);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 44px;
+            height: 44px;
+            background: var(--gradient);
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        /* Challenges Section */
+        .challenges {
+            padding: 100px 0;
+            background: var(--bg-light);
+        }
+
+        .challenges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 32px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .challenge-card {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            border: 2px solid var(--border);
+            transition: all 0.3s;
+        }
+
+        .challenge-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 8px 24px rgba(65, 105, 225, 0.15);
+        }
+
+        .challenge-card h4 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .challenge-card p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Footer */
+        footer {
+            background: #1F2937;
+            color: white;
+            padding: 80px 0 40px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 48px;
+            margin-bottom: 48px;
+        }
+
+        .footer-section h4 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 24px;
+        }
+
+        .footer-section p {
+            color: #9CA3AF;
+            line-height: 1.6;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
+        .footer-links a {
+            color: #9CA3AF;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #374151;
+            padding-top: 32px;
+            text-align: center;
+            color: #9CA3AF;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 40px;
+            }
+
+            .hero-subtitle {
+                font-size: 20px;
+            }
+
+            .arch-diagram {
+                grid-template-columns: 1fr;
+            }
+
+            .arch-table {
+                overflow-x: auto;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                    </svg>
+                    Kudig
+                </div>
+                <div class="nav-links">
+                    <a href="#features">特性</a>
+                    <a href="#architecture">架构</a>
+                    <a href="#logic">设计逻辑</a>
+                    <a href="#extension">扩展性</a>
+                </div>
+                <a href="https://github.com/your-org/kudig" class="github-btn">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <h1>Kudig</h1>
+                <p class="hero-subtitle">Kubernetes Diagnostic Toolkit</p>
+                <p class="hero-description">
+                    专为Kubernetes集群设计的智能故障排查工具集。结合规则引擎与AI增强分析，
+                    帮助运维工程师和开发者快速识别、诊断和解决集群中的常见问题。
+                </p>
+                <div class="hero-buttons">
+                    <a href="#architecture" class="btn-primary">
+                        了解架构
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                        </svg>
+                    </a>
+                    <a href="https://github.com/your-org/kudig" class="btn-secondary">查看文档</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="features" id="features">
+            <div class="container">
+                <div class="section-header">
+                    <h2>核心特性</h2>
+                    <p>Kudig提供端到端的故障排查能力，从问题检测到根因分析，再到修复建议</p>
+                </div>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2v20M2 12h20"/>
+                            </svg>
+                        </div>
+                        <h3>模块化架构</h3>
+                        <p>采用插件式Analyzer设计，每个模块针对特定问题域，便于扩展和定制</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 6v6l4 2"/>
+                            </svg>
+                        </div>
+                        <h3>实时数据采集</h3>
+                        <p>基于Client-Go和Watch机制，实时监听集群状态变化，减少轮询开销</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                            </svg>
+                        </div>
+                        <h3>AI增强诊断</h3>
+                        <p>可选集成OpenAI或本地LLM，处理复杂上下文分析，提供智能修复建议</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                            </svg>
+                        </div>
+                        <h3>多维报告输出</h3>
+                        <p>支持JSON、YAML、Markdown多种格式，集成Web UI可视化和时间线展示</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                                <line x1="8" y1="21" x2="16" y2="21"/>
+                                <line x1="12" y1="17" x2="12" y2="21"/>
+                            </svg>
+                        </div>
+                        <h3>多种部署模式</h3>
+                        <p>支持CLI命令行接口和Operator模式运行，可集成到CI/CD管道或监控系统</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            </svg>
+                        </div>
+                        <h3>安全可控</h3>
+                        <p>RBAC最小权限原则，自动化修复需用户确认，避免误操作风险</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="architecture" id="architecture">
+            <div class="container">
+                <div class="section-header">
+                    <h2>设计架构</h2>
+                    <p>四层架构设计，确保低侵入性、高效率和可扩展性</p>
+                </div>
+                <div class="arch-diagram">
+                    <div class="arch-layer">
+                        <h3>数据采集层</h3>
+                        <ul>
+                            <li>Client-Go API查询</li>
+                            <li>实时Watch机制</li>
+                            <li>Prometheus Metrics集成</li>
+                            <li>ELK日志栈支持</li>
+                            <li>eBPF网络追踪</li>
+                        </ul>
+                    </div>
+                    <div class="arch-layer">
+                        <h3>分析引擎层</h3>
+                        <ul>
+                            <li>Pod Analyzer</li>
+                            <li>Network Analyzer</li>
+                            <li>规则引擎检查</li>
+                            <li>AI模型集成</li>
+                            <li>并行执行框架</li>
+                        </ul>
+                    </div>
+                    <div class="arch-layer">
+                        <h3>报告可视化层</h3>
+                        <ul>
+                            <li>JSON/YAML输出</li>
+                            <li>Markdown报告生成</li>
+                            <li>Web UI Dashboard</li>
+                            <li>问题树状图</li>
+                            <li>时间线展示</li>
+                        </ul>
+                    </div>
+                    <div class="arch-layer">
+                        <h3>执行修复层</h3>
+                        <ul>
+                            <li>自动化修复脚本</li>
+                            <li>用户确认机制</li>
+                            <li>Operator模式部署</li>
+                            <li>CRD周期扫描</li>
+                            <li>低风险操作自动执行</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="arch-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>层级</th>
+                                <th>关键组件</th>
+                                <th>输入</th>
+                                <th>输出</th>
+                                <th>设计思路</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>数据采集</td>
+                                <td>Client-Go, Watchers</td>
+                                <td>K8s API, Metrics</td>
+                                <td>Raw Data (Events, Logs)</td>
+                                <td>实时性高，减少API调用负载</td>
+                            </tr>
+                            <tr>
+                                <td>分析引擎</td>
+                                <td>Analyzers, AI Integration</td>
+                                <td>Raw Data</td>
+                                <td>Issues List with Scores</td>
+                                <td>模块化，便于扩展；规则+AI平衡准确与速度</td>
+                            </tr>
+                            <tr>
+                                <td>报告可视化</td>
+                                <td>Report Generator, UI</td>
+                                <td>Issues</td>
+                                <td>Readable Reports</td>
+                                <td>用户友好，加速决策</td>
+                            </tr>
+                            <tr>
+                                <td>执行修复</td>
+                                <td>Remediation Scripts</td>
+                                <td>Reports</td>
+                                <td>Fix Commands</td>
+                                <td>自动化但可控，避免误操作</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section class="design-logic" id="logic">
+            <div class="container">
+                <div class="section-header">
+                    <h2>设计逻辑</h2>
+                    <p>问题导向、可扩展性、AI与规则平衡、性能优化的综合考量</p>
+                </div>
+                <div class="logic-grid">
+                    <div class="logic-card">
+                        <div class="logic-header">
+                            <h3>问题导向 vs 资源导向</h3>
+                        </div>
+                        <div class="logic-body">
+                            <p>传统工具如kubectl describe是<strong>资源-centric</strong>，Kudig是<strong>issue-centric</strong>。</p>
+                            <p>先扫描整个集群，然后分类问题（资源、配置、网络、安全），减少用户输入，自动发现隐藏问题，提高效率。</p>
+                        </div>
+                    </div>
+                    <div class="logic-card">
+                        <div class="logic-header">
+                            <h3>可扩展性与模块化</h3>
+                        </div>
+                        <div class="logic-body">
+                            <p>Analyzer是独立模块，每个处理一个问题域。用户可<strong>自定义analyzer</strong>，基于K8s事件或metrics触发。</p>
+                            <p>避免单体设计，便于维护和社区贡献，鼓励生态发展。</p>
+                        </div>
+                    </div>
+                    <div class="logic-card">
+                        <div class="logic-header">
+                            <h3>AI与规则的平衡</h3>
+                        </div>
+                        <div class="logic-body">
+                            <p><strong>规则</strong>处理确定性问题（如镜像拉取失败），<strong>AI</strong>处理模糊性（如日志模式识别）。</p>
+                            <p>可选禁用AI以支持离线环境，降低依赖，确保生产环境可用性。</p>
+                        </div>
+                    </div>
+                    <div class="logic-card">
+                        <div class="logic-header">
+                            <h3>性能与侵入性</h3>
+                        </div>
+                        <div class="logic-body">
+                            <p><strong>无Agent部署</strong>（纯Client模式），或轻量DaemonSet for Operator。</p>
+                            <p>最小化资源消耗，适合生产环境。扫描频率可配置，避免API洪水。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="scenarios">
+            <div class="container">
+                <div class="section-header">
+                    <h2>常见场景覆盖</h2>
+                    <p>内置10+ analyzers，覆盖80%常见故障（Pareto原则）</p>
+                </div>
+                <div class="scenario-list">
+                    <div class="scenario-item">
+                        <h4>Pod崩溃诊断</h4>
+                        <p>自动检测OOM、镜像拉取失败、配置错误等导致Pod崩溃的原因，提供根因分析和修复建议</p>
+                    </div>
+                    <div class="scenario-item">
+                        <h4>网络连通性分析</h4>
+                        <p>检查Service、Ingress、NetworkPolicy配置，诊断跨命名空间通信问题，追踪网络瓶颈</p>
+                    </div>
+                    <div class="scenario-item">
+                        <h4>资源瓶颈识别</h4>
+                        <p>监控CPU、内存、磁盘使用率，分析资源配额是否合理，识别资源争用和瓶颈</p>
+                    </div>
+                    <div class="scenario-item">
+                        <h4>配置错误检测</h4>
+                        <p>验证YAML配置语法、资源限制、亲和性规则等，发现潜在配置问题和最佳实践违规</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="extension" id="extension">
+            <div class="container">
+                <div class="section-header">
+                    <h2>基于K8s代码扩展Analyzer</h2>
+                    <p>Kubernetes开源代码为你提供了无限扩展可能</p>
+                </div>
+                <div class="extension-content">
+                    <h3>完全可以！</h3>
+                    <p>Kubernetes是开源项目，其核心代码（用Go编写）公开在GitHub。你可以基于K8s代码扩展analyzer，具体方式如下：</p>
+                    <ol class="extension-steps">
+                        <li>
+                            <strong>使用Client-Go库：</strong>这是K8s官方推荐的客户端库，可直接查询API扩展analyzer。例如，编写一个自定义NodeAnalyzer，复用K8s的node/status代码检查节点NotReady状态。
+                        </li>
+                        <li>
+                            <strong>参考K8s内置机制：</strong>K8s有内置的诊断逻辑，如kubelet的event reporting或admission controllers。你可以fork K8s代码，提取相关模块（如从pkg/kubelet中借鉴pod lifecycle检查），然后集成到Kudig的analyzer框架中。
+                        </li>
+                        <li>
+                            <strong>扩展逻辑：</strong>Analyzer接口定义为Go interface（e.g., type Analyzer interface { Analyze(ctx context.Context) []Issue }）。新analyzer可继承K8s的types（如v1.Pod），添加自定义检查。参考k8sgpt的开源实现，你可以添加analyzer for新兴功能如Gateway API或eBPF网络诊断。
+                        </li>
+                        <li>
+                            <strong>优势与注意：</strong>基于K8s代码确保兼容性和准确性（如直接使用API schema避免版本漂移）。但需遵守Apache 2.0许可，避免直接复制大段代码（改用inspired-by）。测试时用minikube模拟集群。
+                        </li>
+                    </ol>
+                    <p>总体上，Kudig的设计允许<strong>无限扩展analyzer</strong>，鼓励社区贡献。通过这种方式，你可以构建一个高度定制化的工具集，超越参考文档的基线。</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="challenges">
+            <div class="container">
+                <div class="section-header">
+                    <h2>潜在挑战与解决方案</h2>
+                </div>
+                <div class="challenges-grid">
+                    <div class="challenge-card">
+                        <h4>数据隐私</h4>
+                        <p>本地处理敏感日志，不将数据上传到外部服务，确保企业数据安全</p>
+                    </div>
+                    <div class="challenge-card">
+                        <h4>误报控制</h4>
+                        <p>使用置信度评分过滤，支持自定义阈值，减少不必要的告警干扰</p>
+                    </div>
+                    <div class="challenge-card">
+                        <h4>版本兼容性</h4>
+                        <p>支持K8s 1.20+版本，适配不同版本的API差异，确保向后兼容</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Kudig</h4>
+                    <p>Kubernetes Diagnostic Toolkit - 专为K8s集群设计的智能故障排查工具集</p>
+                </div>
+                <div class="footer-section">
+                    <h4>资源</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">文档</a></li>
+                        <li><a href="#">API参考</a></li>
+                        <li><a href="#">示例</a></li>
+                        <li><a href="#">博客</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>社区</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">GitHub</a></li>
+                        <li><a href="#">Slack</a></li>
+                        <li><a href="#">Discord</a></li>
+                        <li><a href="#">贡献指南</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>更多</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">关于我们</a></li>
+                        <li><a href="#">隐私政策</a></li>
+                        <li><a href="#">服务条款</a></li>
+                        <li><a href="#">联系我们</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Kudig. Licensed under Apache 2.0.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
