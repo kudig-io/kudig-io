@@ -3,555 +3,1040 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kudig - Kubernetes Diagnostic Toolkit</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234169E1'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z'/></svg>">
+    <title data-i18n="page_title">Kudig IO - Kubernetes 智能诊断与运维生态系统</title>
+    <meta name="description" data-i18n="meta_desc" content="Kudig IO 是一个全面的 Kubernetes 诊断与运维生态系统，提供智能故障排查、集群管理、etcd 备份和 AI 辅助运维功能。">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' style='stop-color:%23326CE5'/><stop offset='100%' style='stop-color:%234285F4'/></linearGradient></defs><path fill='url(%23g)' d='M16 2L3 9v14l13 7 13-7V9L16 2zm0 4.5l9 4.9v9.2l-9 4.9-9-4.9V11.4l9-4.9z'/><circle fill='%23326CE5' cx='16' cy='16' r='5'/></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <style>
+        :root {
+            /* CNCF Color Palette */
+            --cncf-blue: #326CE5;
+            --cncf-blue-dark: #1B4FC3;
+            --cncf-blue-light: #5B8DEF;
+            --cncf-navy: #1A2B4C;
+            --cncf-gray-900: #0F172A;
+            --cncf-gray-800: #1E293B;
+            --cncf-gray-700: #334155;
+            --cncf-gray-600: #475569;
+            --cncf-gray-500: #64748B;
+            --cncf-gray-400: #94A3B8;
+            --cncf-gray-300: #CBD5E1;
+            --cncf-gray-200: #E2E8F0;
+            --cncf-gray-100: #F1F5F9;
+            --cncf-gray-50: #F8FAFC;
+            --cncf-white: #FFFFFF;
+            
+            --accent-green: #10B981;
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        :root {
-            --primary: #4169E1;
-            --primary-dark: #3155C7;
-            --secondary: #1E40AF;
-            --text-primary: #1F2937;
-            --text-secondary: #6B7280;
-            --bg-light: #F9FAFB;
-            --bg-white: #FFFFFF;
-            --border: #E5E7EB;
-            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 80px;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            font-family: 'Noto Sans SC', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             line-height: 1.6;
-            color: var(--text-primary);
-            background: var(--bg-light);
+            color: var(--cncf-gray-800);
+            background: var(--cncf-white);
+            -webkit-font-smoothing: antialiased;
         }
 
+        /* Language Switch Styles */
+        .lang-content {
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .lang-content.switching {
+            opacity: 0;
+            transform: translateY(4px);
+        }
+
+        /* Language Switcher Button */
+        .lang-switcher {
+            position: relative;
+            margin-right: 12px;
+        }
+
+        .lang-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--cncf-gray-100);
+            border: 1px solid var(--cncf-gray-200);
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--cncf-gray-700);
+            cursor: pointer;
+            transition: var(--transition-base);
+        }
+
+        .lang-btn:hover {
+            background: var(--cncf-gray-200);
+            border-color: var(--cncf-gray-300);
+        }
+
+        .lang-btn .flag {
+            font-size: 16px;
+        }
+
+        .lang-btn .arrow {
+            font-size: 10px;
+            transition: transform 0.2s ease;
+        }
+
+        .lang-switcher:hover .lang-btn .arrow {
+            transform: rotate(180deg);
+        }
+
+        .lang-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            min-width: 140px;
+            background: var(--cncf-white);
+            border: 1px solid var(--cncf-gray-200);
+            border-radius: 12px;
+            box-shadow: var(--shadow-xl);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: all 0.2s ease;
+            z-index: 1001;
+            overflow: hidden;
+        }
+
+        .lang-switcher:hover .lang-dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .lang-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background 0.15s ease;
+            font-size: 14px;
+            color: var(--cncf-gray-700);
+        }
+
+        .lang-option:hover {
+            background: var(--cncf-gray-50);
+        }
+
+        .lang-option.active {
+            background: rgba(50, 108, 229, 0.08);
+            color: var(--cncf-blue);
+            font-weight: 600;
+        }
+
+        .lang-option .flag {
+            font-size: 18px;
+        }
+
+        .lang-option .check {
+            margin-left: auto;
+            font-size: 14px;
+            color: var(--cncf-blue);
+        }
+
+        /* Container */
         .container {
-            max-width: 1200px;
+            max-width: 1280px;
             margin: 0 auto;
-            padding: 0 24px;
+            padding: 0 32px;
         }
 
-        /* Header */
-        header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
+        /* Navigation */
+        .navbar {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             z-index: 1000;
-            border-bottom: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--cncf-gray-200);
+            transition: var(--transition-base);
         }
 
-        nav {
+        .navbar.scrolled {
+            box-shadow: var(--shadow-lg);
+        }
+
+        .navbar-inner {
             display: flex;
+            align-items: center;
             justify-content: space-between;
-            align-items: center;
-            height: 70px;
+            height: 72px;
         }
 
-        .logo {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--primary);
+        .nav-brand {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--cncf-gray-900);
+            font-weight: 800;
+            font-size: 24px;
+            letter-spacing: -0.5px;
         }
 
-        .logo svg {
-            width: 32px;
-            height: 32px;
+        .nav-brand-icon {
+            width: 40px;
+            height: 40px;
         }
 
         .nav-links {
             display: flex;
-            gap: 32px;
-        }
-
-        .nav-links a {
-            color: var(--text-primary);
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-
-        .nav-links a:hover {
-            color: var(--primary);
-        }
-
-        .github-btn {
-            background: var(--primary);
-            color: white;
-            padding: 10px 24px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-
-        .github-btn:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(65, 105, 225, 0.3);
-        }
-
-        /* Hero Section */
-        .hero {
-            padding: 180px 0 120px;
-            text-align: center;
-            background: linear-gradient(180deg, #ffffff 0%, #F9FAFB 100%);
-        }
-
-        .hero h1 {
-            font-size: 64px;
-            font-weight: 800;
-            background: var(--gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 24px;
-            letter-spacing: -1px;
-        }
-
-        .hero-subtitle {
-            font-size: 24px;
-            color: var(--text-secondary);
-            margin-bottom: 40px;
-            font-weight: 400;
-        }
-
-        .hero-description {
-            max-width: 800px;
-            margin: 0 auto 48px;
-            font-size: 18px;
-            color: var(--text-secondary);
-            line-height: 1.8;
-        }
-
-        .hero-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 16px;
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-            padding: 16px 40px;
-            border-radius: 12px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 16px;
-            transition: all 0.3s;
-            display: inline-flex;
             align-items: center;
             gap: 8px;
         }
 
+        .nav-link {
+            padding: 8px 16px;
+            color: var(--cncf-gray-600);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+            border-radius: 8px;
+            transition: var(--transition-base);
+        }
+
+        .nav-link:hover {
+            color: var(--cncf-blue);
+            background: var(--cncf-gray-100);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-cta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, var(--cncf-blue) 0%, var(--cncf-blue-light) 100%);
+            color: var(--cncf-white);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            border-radius: 8px;
+            transition: var(--transition-base);
+            box-shadow: 0 4px 12px rgba(50, 108, 229, 0.3);
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(50, 108, 229, 0.4);
+        }
+
+        .nav-cta svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Hero Section */
+        .hero {
+            position: relative;
+            padding: 160px 0 100px;
+            background: linear-gradient(135deg, var(--cncf-navy) 0%, var(--cncf-blue-dark) 50%, var(--cncf-blue) 100%);
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(50, 108, 229, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.2) 0%, transparent 40%),
+                radial-gradient(circle at 60% 80%, rgba(6, 182, 212, 0.15) 0%, transparent 40%);
+            pointer-events: none;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 32px;
+            backdrop-filter: blur(10px);
+        }
+
+        .hero-badge-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .hero-title {
+            font-size: 56px;
+            font-weight: 900;
+            line-height: 1.1;
+            color: var(--cncf-white);
+            margin-bottom: 24px;
+            letter-spacing: -2px;
+        }
+
+        .hero-title span {
+            background: linear-gradient(135deg, #60A5FA 0%, #A78BFA 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 22px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 40px;
+            line-height: 1.6;
+            max-width: 540px;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 48px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 28px;
+            font-weight: 600;
+            font-size: 15px;
+            border-radius: 10px;
+            text-decoration: none;
+            transition: var(--transition-base);
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--cncf-white);
+            color: var(--cncf-blue);
+            box-shadow: var(--shadow-lg);
+        }
+
         .btn-primary:hover {
-            background: var(--primary-dark);
             transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(65, 105, 225, 0.4);
+            box-shadow: var(--shadow-xl);
         }
 
         .btn-secondary {
-            background: white;
-            color: var(--text-primary);
-            padding: 16px 40px;
-            border-radius: 12px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 16px;
-            border: 2px solid var(--border);
-            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--cncf-white);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
         }
 
         .btn-secondary:hover {
-            border-color: var(--primary);
-            color: var(--primary);
+            background: rgba(255, 255, 255, 0.2);
         }
 
-        /* Features Section */
-        .features {
-            padding: 100px 0;
-            background: white;
+        .btn svg {
+            width: 20px;
+            height: 20px;
         }
 
+        .hero-stats {
+            display: flex;
+            gap: 48px;
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--cncf-white);
+            letter-spacing: -1px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 500;
+        }
+
+        /* Hero Visual */
+        .hero-graphic {
+            width: 100%;
+            aspect-ratio: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            backdrop-filter: blur(20px);
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .graphic-header {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .graphic-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .graphic-dot.red { background: #FF5F57; }
+        .graphic-dot.yellow { background: #FFBD2E; }
+        .graphic-dot.green { background: #28CA42; }
+
+        .graphic-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .code-line {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+        }
+
+        .code-prompt { color: var(--accent-green); }
+        .code-command { color: rgba(255, 255, 255, 0.9); }
+
+        .code-output {
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            border-left: 3px solid var(--accent-green);
+        }
+
+        .output-line {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 6px;
+        }
+
+        .output-line:last-child { margin-bottom: 0; }
+
+        .status-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+        }
+
+        .status-icon.success {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--accent-green);
+        }
+
+        /* Section Headers */
         .section-header {
             text-align: center;
-            margin-bottom: 60px;
+            max-width: 720px;
+            margin: 0 auto 64px;
         }
 
-        .section-header h2 {
-            font-size: 42px;
-            font-weight: 700;
-            margin-bottom: 16px;
-            color: var(--text-primary);
+        .section-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            background: rgba(50, 108, 229, 0.1);
+            color: var(--cncf-blue);
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 50px;
+            margin-bottom: 20px;
         }
 
-        .section-header p {
+        .section-title {
+            font-size: 40px;
+            font-weight: 800;
+            color: var(--cncf-gray-900);
+            margin-bottom: 20px;
+            letter-spacing: -1px;
+        }
+
+        .section-desc {
             font-size: 18px;
-            color: var(--text-secondary);
-            max-width: 600px;
-            margin: 0 auto;
+            color: var(--cncf-gray-500);
+            line-height: 1.7;
         }
 
-        .features-grid {
+        /* Ecosystem Section */
+        .ecosystem {
+            padding: 120px 0;
+            background: var(--cncf-gray-50);
+        }
+
+        .ecosystem-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 32px;
-            margin-bottom: 60px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
         }
 
-        .feature-card {
-            background: var(--bg-light);
-            padding: 40px;
+        .project-card {
+            background: var(--cncf-white);
+            border: 1px solid var(--cncf-gray-200);
             border-radius: 16px;
-            transition: all 0.3s;
-            border: 1px solid transparent;
+            padding: 32px;
+            transition: var(--transition-slow);
+            position: relative;
+            overflow: hidden;
         }
 
-        .feature-card:hover {
-            background: white;
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, var(--cncf-blue) 0%, var(--cncf-blue-light) 100%);
+            transform: scaleX(0);
+            transition: var(--transition-slow);
+        }
+
+        .project-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
-            border-color: var(--border);
+            box-shadow: var(--shadow-xl);
+            border-color: var(--cncf-gray-300);
         }
 
-        .feature-icon {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .project-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .project-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .project-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--cncf-blue) 0%, var(--cncf-blue-light) 100%);
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+
+        .project-icon svg {
+            width: 28px;
+            height: 28px;
+            color: var(--cncf-white);
+        }
+
+        .project-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent-green);
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 50px;
+        }
+
+        .project-status::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: var(--accent-green);
+            border-radius: 50%;
+        }
+
+        .project-name {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--cncf-gray-900);
+            margin-bottom: 8px;
+        }
+
+        .project-desc {
+            font-size: 15px;
+            color: var(--cncf-gray-500);
+            line-height: 1.6;
             margin-bottom: 24px;
         }
 
-        .feature-icon svg {
-            width: 32px;
-            height: 32px;
-            color: white;
+        .project-features {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 24px;
         }
 
-        .feature-card h3 {
-            font-size: 20px;
+        .project-feature {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: var(--cncf-gray-600);
+        }
+
+        .project-feature::before {
+            content: '→';
+            color: var(--cncf-blue);
             font-weight: 700;
-            margin-bottom: 12px;
-            color: var(--text-primary);
         }
 
-        .feature-card p {
-            color: var(--text-secondary);
+        .project-tech {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .tech-badge {
+            padding: 4px 10px;
+            background: var(--cncf-gray-100);
+            color: var(--cncf-gray-600);
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .project-links {
+            display: flex;
+            gap: 12px;
+        }
+
+        .project-link {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: var(--cncf-gray-100);
+            color: var(--cncf-gray-700);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: var(--transition-base);
+        }
+
+        .project-link:hover {
+            background: var(--cncf-gray-200);
+            color: var(--cncf-gray-900);
+        }
+
+        .project-link.primary {
+            background: var(--cncf-blue);
+            color: var(--cncf-white);
+        }
+
+        .project-link.primary:hover {
+            background: var(--cncf-blue-dark);
+        }
+
+        /* Features Section */
+        .features {
+            padding: 120px 0;
+            background: var(--cncf-white);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+        }
+
+        .feature-item {
+            padding: 32px;
+            border: 1px solid var(--cncf-gray-200);
+            border-radius: 16px;
+            transition: var(--transition-base);
+        }
+
+        .feature-item:hover {
+            border-color: var(--cncf-blue);
+            box-shadow: 0 0 40px rgba(50, 108, 229, 0.15);
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(50, 108, 229, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .feature-icon svg {
+            width: 24px;
+            height: 24px;
+            color: var(--cncf-blue);
+        }
+
+        .feature-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--cncf-gray-900);
+            margin-bottom: 12px;
+        }
+
+        .feature-desc {
+            font-size: 14px;
+            color: var(--cncf-gray-500);
             line-height: 1.6;
         }
 
         /* Architecture Section */
         .architecture {
-            padding: 100px 0;
-            background: var(--bg-light);
+            padding: 120px 0;
+            background: var(--cncf-gray-900);
+            color: var(--cncf-white);
+        }
+
+        .architecture .section-title {
+            color: var(--cncf-white);
+        }
+
+        .architecture .section-desc {
+            color: var(--cncf-gray-400);
         }
 
         .arch-diagram {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            display: flex;
+            flex-direction: column;
             gap: 24px;
-            margin-top: 60px;
         }
 
         .arch-layer {
-            background: white;
-            padding: 32px;
-            border-radius: 16px;
-            border-top: 4px solid var(--primary);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-            transition: all 0.3s;
-        }
-
-        .arch-layer:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
-        }
-
-        .arch-layer h3 {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 16px;
-            color: var(--primary);
-        }
-
-        .arch-layer ul {
-            list-style: none;
-        }
-
-        .arch-layer li {
-            padding: 8px 0;
-            color: var(--text-secondary);
-            font-size: 14px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .arch-layer li:last-child {
-            border-bottom: none;
-        }
-
-        .arch-layer li::before {
-            content: "→";
-            color: var(--primary);
-            margin-right: 8px;
-        }
-
-        .arch-table {
-            margin-top: 60px;
-            background: white;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-        }
-
-        .arch-table table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .arch-table th {
-            background: var(--primary);
-            color: white;
-            padding: 20px;
-            text-align: left;
-            font-weight: 600;
-        }
-
-        .arch-table td {
-            padding: 20px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .arch-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        .arch-table tr:hover {
-            background: var(--bg-light);
-        }
-
-        /* Design Logic Section */
-        .design-logic {
-            padding: 100px 0;
-            background: white;
-        }
-
-        .logic-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            grid-template-columns: 160px 1fr;
             gap: 32px;
+            align-items: start;
         }
 
-        .logic-card {
-            background: var(--bg-light);
-            border-radius: 16px;
-            overflow: hidden;
-            border: 1px solid var(--border);
-            transition: all 0.3s;
-        }
-
-        .logic-card:hover {
-            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
-            transform: translateY(-4px);
-        }
-
-        .logic-header {
-            background: var(--gradient);
-            padding: 24px 32px;
-            color: white;
-        }
-
-        .logic-header h3 {
-            font-size: 18px;
-            font-weight: 700;
-        }
-
-        .logic-body {
-            padding: 32px;
-        }
-
-        .logic-body p {
-            color: var(--text-secondary);
-            line-height: 1.8;
-            margin-bottom: 16px;
-        }
-
-        .logic-body strong {
-            color: var(--text-primary);
-        }
-
-        /* Scenarios Section */
-        .scenarios {
-            padding: 100px 0;
-            background: var(--bg-light);
-        }
-
-        .scenario-list {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .scenario-item {
-            background: white;
+        .arch-layer-label {
+            padding: 16px 20px;
+            background: rgba(50, 108, 229, 0.2);
+            border: 1px solid rgba(50, 108, 229, 0.3);
             border-radius: 12px;
-            padding: 32px;
-            margin-bottom: 24px;
-            border-left: 4px solid var(--primary);
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-            transition: all 0.3s;
-        }
-
-        .scenario-item:hover {
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-            transform: translateX(8px);
-        }
-
-        .scenario-item h4 {
-            font-size: 20px;
             font-weight: 700;
-            margin-bottom: 12px;
-            color: var(--text-primary);
+            font-size: 14px;
+            color: var(--cncf-blue-light);
+            text-align: center;
         }
 
-        .scenario-item p {
-            color: var(--text-secondary);
-            line-height: 1.6;
+        .arch-components {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
         }
 
-        /* Extension Section */
-        .extension {
-            padding: 100px 0;
-            background: white;
+        .arch-component {
+            padding: 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            text-align: center;
+            transition: var(--transition-base);
         }
 
-        .extension-content {
-            max-width: 800px;
-            margin: 0 auto;
-            background: var(--bg-light);
-            border-radius: 20px;
-            padding: 48px;
-            border: 2px solid var(--border);
+        .arch-component:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(50, 108, 229, 0.5);
         }
 
-        .extension-content h3 {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 24px;
-            color: var(--text-primary);
-        }
-
-        .extension-content p {
-            color: var(--text-secondary);
-            line-height: 1.8;
-            margin-bottom: 24px;
-        }
-
-        .extension-steps {
-            list-style: none;
-            counter-reset: step;
-        }
-
-        .extension-steps li {
-            position: relative;
-            padding-left: 60px;
-            margin-bottom: 24px;
-            color: var(--text-secondary);
-            line-height: 1.8;
-        }
-
-        .extension-steps li::before {
-            counter-increment: step;
-            content: counter(step);
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 44px;
-            height: 44px;
-            background: var(--gradient);
-            border-radius: 50%;
-            color: white;
+        .arch-component-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(50, 108, 229, 0.2);
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 700;
-            font-size: 18px;
+            margin: 0 auto 12px;
         }
 
-        /* Challenges Section */
-        .challenges {
-            padding: 100px 0;
-            background: var(--bg-light);
+        .arch-component-icon svg {
+            width: 20px;
+            height: 20px;
+            color: var(--cncf-blue-light);
         }
 
-        .challenges-grid {
+        .arch-component h4 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .arch-component p {
+            font-size: 13px;
+            color: var(--cncf-gray-400);
+        }
+
+        /* Use Cases Section */
+        .use-cases {
+            padding: 120px 0;
+            background: var(--cncf-gray-50);
+        }
+
+        .cases-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 32px;
-            max-width: 900px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .case-card {
+            background: var(--cncf-white);
+            padding: 32px;
+            border-radius: 16px;
+            border: 1px solid var(--cncf-gray-200);
+            transition: var(--transition-base);
+        }
+
+        .case-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .case-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, rgba(50, 108, 229, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .case-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--cncf-gray-900);
+            margin-bottom: 12px;
+        }
+
+        .case-desc {
+            font-size: 15px;
+            color: var(--cncf-gray-500);
+            line-height: 1.6;
+        }
+
+        /* Tech Stack Section */
+        .tech-stack {
+            padding: 120px 0;
+            background: var(--cncf-white);
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 20px;
+        }
+
+        .tech-category {
+            padding: 28px;
+            background: var(--cncf-gray-50);
+            border: 1px solid var(--cncf-gray-200);
+            border-radius: 12px;
+        }
+
+        .tech-category h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--cncf-gray-900);
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--cncf-gray-200);
+        }
+
+        .tech-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tech-item {
+            padding: 6px 12px;
+            background: var(--cncf-white);
+            border: 1px solid var(--cncf-gray-200);
+            color: var(--cncf-gray-600);
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 6px;
+        }
+
+        /* Community Section */
+        .community {
+            padding: 120px 0;
+            background: linear-gradient(135deg, var(--cncf-gray-50) 0%, var(--cncf-white) 100%);
+            text-align: center;
+        }
+
+        .community-content {
+            max-width: 640px;
             margin: 0 auto;
         }
 
-        .challenge-card {
-            background: white;
-            padding: 40px;
-            border-radius: 16px;
-            border: 2px solid var(--border);
-            transition: all 0.3s;
+        .community-title {
+            font-size: 40px;
+            font-weight: 800;
+            color: var(--cncf-gray-900);
+            margin-bottom: 20px;
         }
 
-        .challenge-card:hover {
-            border-color: var(--primary);
-            box-shadow: 0 8px 24px rgba(65, 105, 225, 0.15);
-        }
-
-        .challenge-card h4 {
+        .community-desc {
             font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 12px;
-            color: var(--text-primary);
+            color: var(--cncf-gray-500);
+            margin-bottom: 40px;
+            line-height: 1.7;
         }
 
-        .challenge-card p {
-            color: var(--text-secondary);
-            line-height: 1.6;
-        }
-
-        /* Footer */
-        footer {
-            background: #1F2937;
-            color: white;
-            padding: 80px 0 40px;
-        }
-
-        .footer-content {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 48px;
+        .community-actions {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
             margin-bottom: 48px;
         }
 
-        .footer-section h4 {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 24px;
+        .community-stats {
+            display: flex;
+            justify-content: center;
+            gap: 64px;
         }
 
-        .footer-section p {
-            color: #9CA3AF;
-            line-height: 1.6;
+        .community-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .community-stat-value {
+            font-size: 48px;
+            font-weight: 800;
+            color: var(--cncf-blue);
+            letter-spacing: -1px;
+        }
+
+        .community-stat-label {
+            font-size: 14px;
+            color: var(--cncf-gray-500);
+            font-weight: 500;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--cncf-gray-900);
+            color: var(--cncf-gray-300);
+            padding: 80px 0 40px;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr repeat(4, 1fr);
+            gap: 64px;
+            margin-bottom: 64px;
+        }
+
+        .footer-brand {
+            max-width: 320px;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--cncf-white);
+            margin-bottom: 16px;
+        }
+
+        .footer-logo svg {
+            width: 36px;
+            height: 36px;
+        }
+
+        .footer-desc {
+            font-size: 14px;
+            line-height: 1.7;
+            color: var(--cncf-gray-400);
+        }
+
+        .footer-section h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--cncf-white);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 20px;
         }
 
         .footer-links {
@@ -563,419 +1048,1078 @@
         }
 
         .footer-links a {
-            color: #9CA3AF;
+            color: var(--cncf-gray-400);
             text-decoration: none;
-            transition: color 0.3s;
+            font-size: 14px;
+            transition: var(--transition-base);
         }
 
         .footer-links a:hover {
-            color: white;
+            color: var(--cncf-white);
         }
 
         .footer-bottom {
-            border-top: 1px solid #374151;
-            padding-top: 32px;
-            text-align: center;
-            color: #9CA3AF;
+            padding-top: 40px;
+            border-top: 1px solid var(--cncf-gray-800);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-copyright {
+            font-size: 14px;
+            color: var(--cncf-gray-500);
+        }
+
+        .footer-social {
+            display: flex;
+            gap: 16px;
+        }
+
+        .footer-social a {
+            width: 40px;
+            height: 40px;
+            background: var(--cncf-gray-800);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--cncf-gray-400);
+            transition: var(--transition-base);
+        }
+
+        .footer-social a:hover {
+            background: var(--cncf-blue);
+            color: var(--cncf-white);
+        }
+
+        .footer-social svg {
+            width: 20px;
+            height: 20px;
         }
 
         /* Responsive */
+        @media (max-width: 1200px) {
+            .ecosystem-grid { grid-template-columns: repeat(2, 1fr); }
+            .features-grid { grid-template-columns: repeat(2, 1fr); }
+            .tech-grid { grid-template-columns: repeat(3, 1fr); }
+            .footer-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 992px) {
+            .hero-grid { grid-template-columns: 1fr; gap: 48px; }
+            .hero-title { font-size: 42px; }
+            .arch-components { grid-template-columns: repeat(2, 1fr); }
+        }
+
         @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 40px;
-            }
-
-            .hero-subtitle {
-                font-size: 20px;
-            }
-
-            .arch-diagram {
-                grid-template-columns: 1fr;
-            }
-
-            .arch-table {
-                overflow-x: auto;
-            }
-
-            .nav-links {
-                display: none;
-            }
-
-            .hero-buttons {
-                flex-direction: column;
-                align-items: center;
-            }
+            .container { padding: 0 20px; }
+            .nav-links { display: none; }
+            .hero-title { font-size: 32px; }
+            .hero-stats { flex-wrap: wrap; gap: 24px; }
+            .section-title { font-size: 28px; }
+            .ecosystem-grid, .features-grid, .cases-grid, .tech-grid { grid-template-columns: 1fr; }
+            .arch-layer { grid-template-columns: 1fr; }
+            .arch-components { grid-template-columns: 1fr; }
+            .community-stats { flex-direction: column; gap: 24px; }
+            .footer-grid { grid-template-columns: 1fr; gap: 40px; }
+            .footer-bottom { flex-direction: column; gap: 24px; text-align: center; }
+            .lang-switcher { margin-right: 8px; }
+            .lang-btn { padding: 8px 12px; font-size: 13px; }
         }
     </style>
 </head>
 <body>
-    <header>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
         <div class="container">
-            <nav>
-                <div class="logo">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+            <div class="navbar-inner">
+                <a href="#" class="nav-brand">
+                    <svg class="nav-brand-icon" viewBox="0 0 32 32" fill="none">
+                        <defs><linearGradient id="logo" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#326CE5"/><stop offset="100%" style="stop-color:#4285F4"/></linearGradient></defs>
+                        <path fill="url(#logo)" d="M16 2L3 9v14l13 7 13-7V9L16 2zm0 4.5l9 4.9v9.2l-9 4.9-9-4.9V11.4l9-4.9z"/><circle fill="#326CE5" cx="16" cy="16" r="5"/>
                     </svg>
-                    Kudig
-                </div>
+                    Kudig IO
+                </a>
                 <div class="nav-links">
-                    <a href="#features">特性</a>
-                    <a href="#architecture">架构</a>
-                    <a href="#logic">设计逻辑</a>
-                    <a href="#extension">扩展性</a>
+                    <a href="#ecosystem" class="nav-link" data-i18n="nav_ecosystem">生态系统</a>
+                    <a href="#features" class="nav-link" data-i18n="nav_features">特性</a>
+                    <a href="#architecture" class="nav-link" data-i18n="nav_architecture">架构</a>
+                    <a href="#use-cases" class="nav-link" data-i18n="nav_usecases">应用场景</a>
+                    <a href="#community" class="nav-link" data-i18n="nav_community">社区</a>
                 </div>
-                <a href="https://github.com/your-org/kudig" class="github-btn">GitHub</a>
-            </nav>
-        </div>
-    </header>
-
-    <main>
-        <section class="hero">
-            <div class="container">
-                <h1>Kudig</h1>
-                <p class="hero-subtitle">Kubernetes Diagnostic Toolkit</p>
-                <p class="hero-description">
-                    专为Kubernetes集群设计的智能故障排查工具集。结合规则引擎与AI增强分析，
-                    帮助运维工程师和开发者快速识别、诊断和解决集群中的常见问题。
-                </p>
-                <div class="hero-buttons">
-                    <a href="#architecture" class="btn-primary">
-                        了解架构
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
-                        </svg>
+                <div class="nav-right">
+                    <!-- Language Switcher -->
+                    <div class="lang-switcher">
+                        <button class="lang-btn" id="langBtn">
+                            <span class="flag" id="currentFlag">🇨🇳</span>
+                            <span id="currentLang">中文</span>
+                            <span class="arrow">▼</span>
+                        </button>
+                        <div class="lang-dropdown">
+                            <div class="lang-option active" data-lang="zh" onclick="switchLang('zh')">
+                                <span class="flag">🇨🇳</span>
+                                <span>中文</span>
+                                <span class="check" id="check-zh">✓</span>
+                            </div>
+                            <div class="lang-option" data-lang="en" onclick="switchLang('en')">
+                                <span class="flag">🇺🇸</span>
+                                <span>English</span>
+                                <span class="check" id="check-en" style="opacity: 0;">✓</span>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="https://github.com/kudig-io" class="nav-cta" target="_blank">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                        <span data-i18n="nav_github">GitHub</span>
                     </a>
-                    <a href="https://github.com/your-org/kudig" class="btn-secondary">查看文档</a>
                 </div>
             </div>
-        </section>
+        </div>
+    </nav>
 
-        <section class="features" id="features">
-            <div class="container">
-                <div class="section-header">
-                    <h2>核心特性</h2>
-                    <p>Kudig提供端到端的故障排查能力，从问题检测到根因分析，再到修复建议</p>
-                </div>
-                <div class="features-grid">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 2v20M2 12h20"/>
-                            </svg>
-                        </div>
-                        <h3>模块化架构</h3>
-                        <p>采用插件式Analyzer设计，每个模块针对特定问题域，便于扩展和定制</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"/>
-                                <path d="M12 6v6l4 2"/>
-                            </svg>
-                        </div>
-                        <h3>实时数据采集</h3>
-                        <p>基于Client-Go和Watch机制，实时监听集群状态变化，减少轮询开销</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-                            </svg>
-                        </div>
-                        <h3>AI增强诊断</h3>
-                        <p>可选集成OpenAI或本地LLM，处理复杂上下文分析，提供智能修复建议</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-                            </svg>
-                        </div>
-                        <h3>多维报告输出</h3>
-                        <p>支持JSON、YAML、Markdown多种格式，集成Web UI可视化和时间线展示</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
-                                <line x1="8" y1="21" x2="16" y2="21"/>
-                                <line x1="12" y1="17" x2="12" y2="21"/>
-                            </svg>
-                        </div>
-                        <h3>多种部署模式</h3>
-                        <p>支持CLI命令行接口和Operator模式运行，可集成到CI/CD管道或监控系统</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                            </svg>
-                        </div>
-                        <h3>安全可控</h3>
-                        <p>RBAC最小权限原则，自动化修复需用户确认，避免误操作风险</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="architecture" id="architecture">
-            <div class="container">
-                <div class="section-header">
-                    <h2>设计架构</h2>
-                    <p>四层架构设计，确保低侵入性、高效率和可扩展性</p>
-                </div>
-                <div class="arch-diagram">
-                    <div class="arch-layer">
-                        <h3>数据采集层</h3>
-                        <ul>
-                            <li>Client-Go API查询</li>
-                            <li>实时Watch机制</li>
-                            <li>Prometheus Metrics集成</li>
-                            <li>ELK日志栈支持</li>
-                            <li>eBPF网络追踪</li>
-                        </ul>
-                    </div>
-                    <div class="arch-layer">
-                        <h3>分析引擎层</h3>
-                        <ul>
-                            <li>Pod Analyzer</li>
-                            <li>Network Analyzer</li>
-                            <li>规则引擎检查</li>
-                            <li>AI模型集成</li>
-                            <li>并行执行框架</li>
-                        </ul>
-                    </div>
-                    <div class="arch-layer">
-                        <h3>报告可视化层</h3>
-                        <ul>
-                            <li>JSON/YAML输出</li>
-                            <li>Markdown报告生成</li>
-                            <li>Web UI Dashboard</li>
-                            <li>问题树状图</li>
-                            <li>时间线展示</li>
-                        </ul>
-                    </div>
-                    <div class="arch-layer">
-                        <h3>执行修复层</h3>
-                        <ul>
-                            <li>自动化修复脚本</li>
-                            <li>用户确认机制</li>
-                            <li>Operator模式部署</li>
-                            <li>CRD周期扫描</li>
-                            <li>低风险操作自动执行</li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="arch-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>层级</th>
-                                <th>关键组件</th>
-                                <th>输入</th>
-                                <th>输出</th>
-                                <th>设计思路</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>数据采集</td>
-                                <td>Client-Go, Watchers</td>
-                                <td>K8s API, Metrics</td>
-                                <td>Raw Data (Events, Logs)</td>
-                                <td>实时性高，减少API调用负载</td>
-                            </tr>
-                            <tr>
-                                <td>分析引擎</td>
-                                <td>Analyzers, AI Integration</td>
-                                <td>Raw Data</td>
-                                <td>Issues List with Scores</td>
-                                <td>模块化，便于扩展；规则+AI平衡准确与速度</td>
-                            </tr>
-                            <tr>
-                                <td>报告可视化</td>
-                                <td>Report Generator, UI</td>
-                                <td>Issues</td>
-                                <td>Readable Reports</td>
-                                <td>用户友好，加速决策</td>
-                            </tr>
-                            <tr>
-                                <td>执行修复</td>
-                                <td>Remediation Scripts</td>
-                                <td>Reports</td>
-                                <td>Fix Commands</td>
-                                <td>自动化但可控，避免误操作</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <section class="design-logic" id="logic">
-            <div class="container">
-                <div class="section-header">
-                    <h2>设计逻辑</h2>
-                    <p>问题导向、可扩展性、AI与规则平衡、性能优化的综合考量</p>
-                </div>
-                <div class="logic-grid">
-                    <div class="logic-card">
-                        <div class="logic-header">
-                            <h3>问题导向 vs 资源导向</h3>
-                        </div>
-                        <div class="logic-body">
-                            <p>传统工具如kubectl describe是<strong>资源-centric</strong>，Kudig是<strong>issue-centric</strong>。</p>
-                            <p>先扫描整个集群，然后分类问题（资源、配置、网络、安全），减少用户输入，自动发现隐藏问题，提高效率。</p>
-                        </div>
-                    </div>
-                    <div class="logic-card">
-                        <div class="logic-header">
-                            <h3>可扩展性与模块化</h3>
-                        </div>
-                        <div class="logic-body">
-                            <p>Analyzer是独立模块，每个处理一个问题域。用户可<strong>自定义analyzer</strong>，基于K8s事件或metrics触发。</p>
-                            <p>避免单体设计，便于维护和社区贡献，鼓励生态发展。</p>
-                        </div>
-                    </div>
-                    <div class="logic-card">
-                        <div class="logic-header">
-                            <h3>AI与规则的平衡</h3>
-                        </div>
-                        <div class="logic-body">
-                            <p><strong>规则</strong>处理确定性问题（如镜像拉取失败），<strong>AI</strong>处理模糊性（如日志模式识别）。</p>
-                            <p>可选禁用AI以支持离线环境，降低依赖，确保生产环境可用性。</p>
-                        </div>
-                    </div>
-                    <div class="logic-card">
-                        <div class="logic-header">
-                            <h3>性能与侵入性</h3>
-                        </div>
-                        <div class="logic-body">
-                            <p><strong>无Agent部署</strong>（纯Client模式），或轻量DaemonSet for Operator。</p>
-                            <p>最小化资源消耗，适合生产环境。扫描频率可配置，避免API洪水。</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="scenarios">
-            <div class="container">
-                <div class="section-header">
-                    <h2>常见场景覆盖</h2>
-                    <p>内置10+ analyzers，覆盖80%常见故障（Pareto原则）</p>
-                </div>
-                <div class="scenario-list">
-                    <div class="scenario-item">
-                        <h4>Pod崩溃诊断</h4>
-                        <p>自动检测OOM、镜像拉取失败、配置错误等导致Pod崩溃的原因，提供根因分析和修复建议</p>
-                    </div>
-                    <div class="scenario-item">
-                        <h4>网络连通性分析</h4>
-                        <p>检查Service、Ingress、NetworkPolicy配置，诊断跨命名空间通信问题，追踪网络瓶颈</p>
-                    </div>
-                    <div class="scenario-item">
-                        <h4>资源瓶颈识别</h4>
-                        <p>监控CPU、内存、磁盘使用率，分析资源配额是否合理，识别资源争用和瓶颈</p>
-                    </div>
-                    <div class="scenario-item">
-                        <h4>配置错误检测</h4>
-                        <p>验证YAML配置语法、资源限制、亲和性规则等，发现潜在配置问题和最佳实践违规</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="extension" id="extension">
-            <div class="container">
-                <div class="section-header">
-                    <h2>基于K8s代码扩展Analyzer</h2>
-                    <p>Kubernetes开源代码为你提供了无限扩展可能</p>
-                </div>
-                <div class="extension-content">
-                    <h3>完全可以！</h3>
-                    <p>Kubernetes是开源项目，其核心代码（用Go编写）公开在GitHub。你可以基于K8s代码扩展analyzer，具体方式如下：</p>
-                    <ol class="extension-steps">
-                        <li>
-                            <strong>使用Client-Go库：</strong>这是K8s官方推荐的客户端库，可直接查询API扩展analyzer。例如，编写一个自定义NodeAnalyzer，复用K8s的node/status代码检查节点NotReady状态。
-                        </li>
-                        <li>
-                            <strong>参考K8s内置机制：</strong>K8s有内置的诊断逻辑，如kubelet的event reporting或admission controllers。你可以fork K8s代码，提取相关模块（如从pkg/kubelet中借鉴pod lifecycle检查），然后集成到Kudig的analyzer框架中。
-                        </li>
-                        <li>
-                            <strong>扩展逻辑：</strong>Analyzer接口定义为Go interface（e.g., type Analyzer interface { Analyze(ctx context.Context) []Issue }）。新analyzer可继承K8s的types（如v1.Pod），添加自定义检查。参考k8sgpt的开源实现，你可以添加analyzer for新兴功能如Gateway API或eBPF网络诊断。
-                        </li>
-                        <li>
-                            <strong>优势与注意：</strong>基于K8s代码确保兼容性和准确性（如直接使用API schema避免版本漂移）。但需遵守Apache 2.0许可，避免直接复制大段代码（改用inspired-by）。测试时用minikube模拟集群。
-                        </li>
-                    </ol>
-                    <p>总体上，Kudig的设计允许<strong>无限扩展analyzer</strong>，鼓励社区贡献。通过这种方式，你可以构建一个高度定制化的工具集，超越参考文档的基线。</p>
-                </div>
-            </div>
-        </section>
-
-        <section class="challenges">
-            <div class="container">
-                <div class="section-header">
-                    <h2>潜在挑战与解决方案</h2>
-                </div>
-                <div class="challenges-grid">
-                    <div class="challenge-card">
-                        <h4>数据隐私</h4>
-                        <p>本地处理敏感日志，不将数据上传到外部服务，确保企业数据安全</p>
-                    </div>
-                    <div class="challenge-card">
-                        <h4>误报控制</h4>
-                        <p>使用置信度评分过滤，支持自定义阈值，减少不必要的告警干扰</p>
-                    </div>
-                    <div class="challenge-card">
-                        <h4>版本兼容性</h4>
-                        <p>支持K8s 1.20+版本，适配不同版本的API差异，确保向后兼容</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <footer>
+    <!-- Hero Section -->
+    <section class="hero">
         <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h4>Kudig</h4>
-                    <p>Kubernetes Diagnostic Toolkit - 专为K8s集群设计的智能故障排查工具集</p>
+            <div class="hero-grid">
+                <div class="hero-content">
+                    <div class="hero-badge">
+                        <span class="hero-badge-dot"></span>
+                        <span data-i18n="hero_badge">生产级 Kubernetes 运维平台</span>
+                    </div>
+                    <h1 class="hero-title">
+                        <span data-i18n="hero_title_1">智能</span><br>
+                        <span data-i18n="hero_title_highlight">Kubernetes</span><br>
+                        <span data-i18n="hero_title_2">运维</span>
+                    </h1>
+                    <p class="hero-subtitle" data-i18n="hero_desc">
+                        全面的 Kubernetes 诊断与运维生态系统，提供智能故障排查、集群管理、etcd 备份和 AI 辅助运维功能。为生产环境而生。
+                    </p>
+                    <div class="hero-actions">
+                        <a href="#ecosystem" class="btn btn-primary">
+                            <span data-i18n="hero_btn_primary">探索生态系统</span>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </a>
+                        <a href="https://github.com/kudig-io" class="btn btn-secondary" target="_blank">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                            <span data-i18n="hero_btn_secondary">GitHub 查看</span>
+                        </a>
+                    </div>
+                    <div class="hero-stats">
+                        <div class="stat">
+                            <span class="stat-value">7</span>
+                            <span class="stat-label" data-i18n="stat_projects">核心项目</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">950+</span>
+                            <span class="stat-label" data-i18n="stat_docs">技术文档</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">40</span>
+                            <span class="stat-label" data-i18n="stat_domains">技术领域</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="hero-graphic">
+                        <div class="graphic-header">
+                            <span class="graphic-dot red"></span>
+                            <span class="graphic-dot yellow"></span>
+                            <span class="graphic-dot green"></span>
+                        </div>
+                        <div class="graphic-content">
+                            <div class="code-line">
+                                <span class="code-prompt">$</span>
+                                <span class="code-command" data-i18n="demo_cmd1">kudig diagnose --cluster prod</span>
+                            </div>
+                            <div class="code-output">
+                                <div class="output-line">
+                                    <span class="status-icon success">✓</span>
+                                    <span data-i18n="demo_output1">节点诊断完成</span>
+                                </div>
+                                <div class="output-line">
+                                    <span class="status-icon success">✓</span>
+                                    <span data-i18n="demo_output2">80+ 规则已评估</span>
+                                </div>
+                                <div class="output-line">
+                                    <span class="status-icon success">✓</span>
+                                    <span data-i18n="demo_output3">发现问题 3 个</span>
+                                </div>
+                            </div>
+                            <div class="code-line">
+                                <span class="code-prompt">$</span>
+                                <span class="code-command" data-i18n="demo_cmd2">klaw status --web</span>
+                            </div>
+                            <div class="code-output">
+                                <div class="output-line">
+                                    <span class="status-icon success">✓</span>
+                                    <span data-i18n="demo_output4">Web UI 运行在 :8080</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Ecosystem Section -->
+    <section class="ecosystem" id="ecosystem">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                    <span data-i18n="ecosystem_label">生态系统</span>
+                </span>
+                <h2 class="section-title" data-i18n="ecosystem_title">模块化架构，统一体验</h2>
+                <p class="section-desc" data-i18n="ecosystem_desc">
+                    七个集成项目涵盖 Kubernetes 运维的各个方面，从节点级诊断到集群级管理
+                </p>
+            </div>
+            <div class="ecosystem-grid">
+                <!-- Kudig -->
+                <div class="project-card">
+                    <div class="project-header">
+                        <div class="project-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><circle cx="12" cy="12" r="4"/></svg>
+                        </div>
+                        <span class="project-status" data-i18n="status_production">生产可用</span>
+                    </div>
+                    <h3 class="project-name">Kudig</h3>
+                    <p class="project-desc" data-i18n="kudig_desc">Kubernetes 节点诊断工具，内置 80+ 检测规则，支持离线与在线双模式，自动生成诊断报告</p>
+                    <div class="project-features">
+                        <span class="project-feature" data-i18n="kudig_feat1">Bash + Go 双版本</span>
+                        <span class="project-feature" data-i18n="kudig_feat2">YAML 规则引擎</span>
+                        <span class="project-feature" data-i18n="kudig_feat3">Helm 部署支持</span>
+                    </div>
+                    <div class="project-tech">
+                        <span class="tech-badge">Go</span>
+                        <span class="tech-badge">Bash</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="../kudig/README.md" class="project-link primary" data-i18n="link_docs">文档</a>
+                        <a href="../kudig/" class="project-link" data-i18n="link_code">代码</a>
+                    </div>
+                </div>
+
+                <!-- Klaw -->
+                <div class="project-card">
+                    <div class="project-header">
+                        <div class="project-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                        </div>
+                        <span class="project-status" data-i18n="status_production">生产可用</span>
+                    </div>
+                    <h3 class="project-name">Klaw</h3>
+                    <p class="project-desc" data-i18n="klaw_desc">现代化 Kubernetes Web 管理平台，集成钉钉/飞书，提供实时监控和告警功能</p>
+                    <div class="project-features">
+                        <span class="project-feature" data-i18n="klaw_feat1">多集群管理</span>
+                        <span class="project-feature" data-i18n="klaw_feat2">IM 平台集成</span>
+                        <span class="project-feature" data-i18n="klaw_feat3">OpenClaw 技能</span>
+                    </div>
+                    <div class="project-tech">
+                        <span class="tech-badge">Go</span>
+                        <span class="tech-badge">React</span>
+                        <span class="tech-badge">TS</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="../klaw/README.md" class="project-link primary" data-i18n="link_docs">文档</a>
+                        <a href="../klaw/" class="project-link" data-i18n="link_code">代码</a>
+                    </div>
+                </div>
+
+                <!-- K8s Guardian -->
+                <div class="project-card">
+                    <div class="project-header">
+                        <div class="project-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        </div>
+                        <span class="project-status" data-i18n="status_production">生产可用</span>
+                    </div>
+                    <h3 class="project-name">K8s Guardian</h3>
+                    <p class="project-desc" data-i18n="guardian_desc">AI 驱动的运维助手，提供终端可视化界面、集群监控和智能诊断</p>
+                    <div class="project-features">
+                        <span class="project-feature" data-i18n="guardian_feat1">终端 UI</span>
+                        <span class="project-feature" data-i18n="guardian_feat2">AI 智能诊断</span>
+                        <span class="project-feature" data-i18n="guardian_feat3">RBAC 分析</span>
+                    </div>
+                    <div class="project-tech">
+                        <span class="tech-badge">Node.js</span>
+                        <span class="tech-badge">Blessed</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="../k8s-guardian/README.md" class="project-link primary" data-i18n="link_docs">文档</a>
+                        <a href="../k8s-guardian/" class="project-link" data-i18n="link_code">代码</a>
+                    </div>
+                </div>
+
+                <!-- Etcd Guardian -->
+                <div class="project-card">
+                    <div class="project-header">
+                        <div class="project-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                        </div>
+                        <span class="project-status" data-i18n="status_production">生产可用</span>
+                    </div>
+                    <h3 class="project-name">Etcd Guardian</h3>
+                    <p class="project-desc" data-i18n="etcd_desc">生产级 etcd 备份 Operator，支持增量快照、多租户隔离和云存储</p>
+                    <div class="project-features">
+                        <span class="project-feature" data-i18n="etcd_feat1">直接 etcd 快照</span>
+                        <span class="project-feature" data-i18n="etcd_feat2">增量备份</span>
+                        <span class="project-feature" data-i18n="etcd_feat3">多云存储</span>
+                    </div>
+                    <div class="project-tech">
+                        <span class="tech-badge">Go</span>
+                        <span class="tech-badge">Operator SDK</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="../etcd-guardian/README.md" class="project-link primary" data-i18n="link_docs">文档</a>
+                        <a href="../etcd-guardian/" class="project-link" data-i18n="link_code">代码</a>
+                    </div>
+                </div>
+
+                <!-- KuGame -->
+                <div class="project-card">
+                    <div class="project-header">
+                        <div class="project-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                        </div>
+                        <span class="project-status" data-i18n="status_active">活跃开发</span>
+                    </div>
+                    <h3 class="project-name">KuGame</h3>
+                    <p class="project-desc" data-i18n="kugame_desc">游戏化 Kubernetes 学习工具，武侠故事驱动，内置战斗答题系统</p>
+                    <div class="project-features">
+                        <span class="project-feature" data-i18n="kugame_feat1">200+ kubectl 命令</span>
+                        <span class="project-feature" data-i18n="kugame_feat2">修仙成长体系</span>
+                        <span class="project-feature" data-i18n="kugame_feat3">战斗模式</span>
+                    </div>
+                    <div class="project-tech">
+                        <span class="tech-badge">Python</span>
+                        <span class="tech-badge">Rich</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="../kugame/README.md" class="project-link primary" data-i18n="link_docs">文档</a>
+                        <a href="../kugame/" class="project-link" data-i18n="link_code">代码</a>
+                    </div>
+                </div>
+
+                <!-- Kudig Database -->
+                <div class="project-card">
+                    <div class="project-header">
+                        <div class="project-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                        </div>
+                        <span class="project-status" data-i18n="status_comprehensive">全面覆盖</span>
+                    </div>
+                    <h3 class="project-name">Kudig Database</h3>
+                    <p class="project-desc" data-i18n="db_desc">Kubernetes 全域知识库，涵盖 40 个技术领域、950+ 文档和 AI 基础设施专题</p>
+                    <div class="project-features">
+                        <span class="project-feature" data-i18n="db_feat1">40 个技术领域</span>
+                        <span class="project-feature" data-i18n="db_feat2">生产实践指南</span>
+                        <span class="project-feature" data-i18n="db_feat3">多维度索引</span>
+                    </div>
+                    <div class="project-tech">
+                        <span class="tech-badge">Markdown</span>
+                        <span class="tech-badge">GitBook</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="../kudig-database/README.md" class="project-link primary" data-i18n="link_browse">浏览</a>
+                        <a href="../kudig-database/" class="project-link" data-i18n="link_code">代码</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <span data-i18n="features_label">核心特性</span>
+                </span>
+                <h2 class="section-title" data-i18n="features_title">为生产环境而生</h2>
+                <p class="section-desc" data-i18n="features_desc">企业级能力设计，面向关键任务 Kubernetes 环境</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>
+                    </div>
+                    <h3 class="feature-title" data-i18n="feat1_title">全栈覆盖</h3>
+                    <p class="feature-desc" data-i18n="feat1_desc">从节点诊断到集群管理，从 etcd 备份到灾难恢复，端到端覆盖</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    </div>
+                    <h3 class="feature-title" data-i18n="feat2_title">实时监控</h3>
+                    <p class="feature-desc" data-i18n="feat2_desc">基于 Watch 机制的事件流，实时掌握集群状态和资源变更</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                    </div>
+                    <h3 class="feature-title" data-i18n="feat3_title">AI 驱动</h3>
+                    <p class="feature-desc" data-i18n="feat3_desc">AI 辅助根因分析和修复建议，由大语言模型提供智能支持</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    </div>
+                    <h3 class="feature-title" data-i18n="feat4_title">企业安全</h3>
+                    <p class="feature-desc" data-i18n="feat4_desc">RBAC 控制、审计日志、加密传输，符合企业安全合规要求</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture Section -->
+    <section class="architecture" id="architecture">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label" style="background: rgba(255,255,255,0.1); color: white;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                    <span data-i18n="arch_label">系统架构</span>
+                </span>
+                <h2 class="section-title" data-i18n="arch_title">分层架构设计</h2>
+                <p class="section-desc" data-i18n="arch_desc">关注点分离的模块化组件，协同工作</p>
+            </div>
+            <div class="arch-diagram">
+                <div class="arch-layer">
+                    <div class="arch-layer-label" data-i18n="layer_interface">交互层</div>
+                    <div class="arch-components">
+                        <div class="arch-component">
+                            <div class="arch-component-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+                            <h4 data-i18n="arch_web">Web UI</h4>
+                            <p>Klaw</p>
+                        </div>
+                        <div class="arch-component">
+                            <div class="arch-component-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 17l6-6-6-6M12 19h8"/></svg></div>
+                            <h4>CLI</h4>
+                            <p data-i18n="arch_terminal">终端工具</p>
+                        </div>
+                        <div class="arch-component">
+                            <div class="arch-component-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+                            <h4 data-i18n="arch_game">游戏化</h4>
+                            <p>KuGame</p>
+                        </div>
+                        <div class="arch-component">
+                            <div class="arch-component-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div>
+                            <h4>ChatOps</h4>
+                            <p data-i18n="arch_im">IM 集成</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="arch-layer">
+                    <div class="arch-layer-label" data-i18n="layer_core">核心服务</div>
+                    <div class="arch-components">
+                        <div class="arch-component">
+                            <div class="arch-component-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div>
+                            <h4 data-i18n="arch_diag">诊断引擎</h4>
+                            <p>Kudig</p>
+                        </div>
+                        <div class="arch-component">
+                            <div class="arch-component-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+                            <h4>AI 引擎</h4>
+                            <p>Guardian</p>
+                        </div>
+                        <div class="arch-component">
+                            <div class="arch-component-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+                            <h4 data-i18n="arch_backup">备份</h4>
+                            <p>Etcd Guardian</p>
+                        </div>
+                        <div class="arch-component">
+                            <div class="arch-component-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/></svg></div>
+                            <h4 data-i18n="arch_knowledge">知识库</h4>
+                            <p>Database</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="arch-layer">
+                    <div class="arch-layer-label" data-i18n="layer_infra">基础设施</div>
+                    <div class="arch-components">
+                        <div class="arch-component">
+                            <div class="arch-component-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><circle cx="12" cy="12" r="3"/></svg></div>
+                            <h4>Kubernetes</h4>
+                            <p>API & Cluster</p>
+                        </div>
+                        <div class="arch-component">
+                            <div class="arch-component-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+                            <h4>etcd</h4>
+                            <p data-i18n="arch_store">数据存储</p>
+                        </div>
+                        <div class="arch-component">
+                            <div class="arch-component-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+                            <h4 data-i18n="arch_object">对象存储</h4>
+                            <p>S3/OSS/GCS</p>
+                        </div>
+                        <div class="arch-component">
+                            <div class="arch-component-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div>
+                            <h4>Prometheus</h4>
+                            <p data-i18n="arch_metrics">监控指标</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Use Cases Section -->
+    <section class="use-cases" id="use-cases">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    <span data-i18n="cases_label">应用场景</span>
+                </span>
+                <h2 class="section-title" data-i18n="cases_title">解决实际问题</h2>
+                <p class="section-desc" data-i18n="cases_desc">Kudig IO 为运维团队创造价值的典型场景</p>
+            </div>
+            <div class="cases-grid">
+                <div class="case-card">
+                    <div class="case-icon">🔍</div>
+                    <h3 class="case-title" data-i18n="case1_title">故障诊断</h3>
+                    <p class="case-desc" data-i18n="case1_desc">快速诊断节点异常、Pod 崩溃、网络故障和存储问题，自动生成根因分析报告</p>
+                </div>
+                <div class="case-card">
+                    <div class="case-icon">📊</div>
+                    <h3 class="case-title" data-i18n="case2_title">集群管理</h3>
+                    <p class="case-desc" data-i18n="case2_desc">多集群统一纳管，实时监控资源使用、性能指标和事件告警，支持钉钉/飞书通知</p>
+                </div>
+                <div class="case-card">
+                    <div class="case-icon">💾</div>
+                    <h3 class="case-title" data-i18n="case3_title">灾难恢复</h3>
+                    <p class="case-desc" data-i18n="case3_desc">etcd 自动备份、增量快照、跨地域容灾，一键恢复保障业务连续性</p>
+                </div>
+                <div class="case-card">
+                    <div class="case-icon">🤖</div>
+                    <h3 class="case-title" data-i18n="case4_title">智能运维</h3>
+                    <p class="case-desc" data-i18n="case4_desc">AI 辅助根因分析、故障预测、自动化修复，降低 MTTR 提升运维效率</p>
+                </div>
+                <div class="case-card">
+                    <div class="case-icon">📚</div>
+                    <h3 class="case-title" data-i18n="case5_title">团队赋能</h3>
+                    <p class="case-desc" data-i18n="case5_desc">通过 KuGame 游戏化学习，帮助团队快速掌握 Kubernetes 命令和运维技能</p>
+                </div>
+                <div class="case-card">
+                    <div class="case-icon">🔒</div>
+                    <h3 class="case-title" data-i18n="case6_title">安全合规</h3>
+                    <p class="case-desc" data-i18n="case6_desc">RBAC 审计、安全策略检查、合规报告生成，满足企业安全合规要求</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Stack Section -->
+    <section class="tech-stack" id="tech-stack">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                    <span data-i18n="tech_label">技术栈</span>
+                </span>
+                <h2 class="section-title" data-i18n="tech_title">云原生技术</h2>
+                <p class="section-desc" data-i18n="tech_desc">采用现代化云原生技术栈，确保高性能、可靠性和可扩展性</p>
+            </div>
+            <div class="tech-grid">
+                <div class="tech-category">
+                    <h4 data-i18n="tech_lang">开发语言</h4>
+                    <div class="tech-items">
+                        <span class="tech-item">Go</span>
+                        <span class="tech-item">Node.js</span>
+                        <span class="tech-item">Python</span>
+                        <span class="tech-item">Bash</span>
+                        <span class="tech-item">TypeScript</span>
+                    </div>
+                </div>
+                <div class="tech-category">
+                    <h4 data-i18n="tech_frontend">前端</h4>
+                    <div class="tech-items">
+                        <span class="tech-item">React</span>
+                        <span class="tech-item">Vite</span>
+                        <span class="tech-item">Tailwind</span>
+                        <span class="tech-item">Blessed</span>
+                    </div>
+                </div>
+                <div class="tech-category">
+                    <h4>Kubernetes</h4>
+                    <div class="tech-items">
+                        <span class="tech-item">client-go</span>
+                        <span class="tech-item">Operator SDK</span>
+                        <span class="tech-item">Helm</span>
+                        <span class="tech-item">CRDs</span>
+                    </div>
+                </div>
+                <div class="tech-category">
+                    <h4 data-i18n="tech_storage">存储</h4>
+                    <div class="tech-items">
+                        <span class="tech-item">etcd</span>
+                        <span class="tech-item">S3</span>
+                        <span class="tech-item">OSS</span>
+                        <span class="tech-item">GCS</span>
+                    </div>
+                </div>
+                <div class="tech-category">
+                    <h4>AI & ML</h4>
+                    <div class="tech-items">
+                        <span class="tech-item">OpenAI</span>
+                        <span class="tech-item">Local LLM</span>
+                        <span class="tech-item" data-i18n="tech_rule">规则引擎</span>
+                    </div>
+                </div>
+                <div class="tech-category">
+                    <h4>DevOps</h4>
+                    <div class="tech-items">
+                        <span class="tech-item">Docker</span>
+                        <span class="tech-item">GitHub Actions</span>
+                        <span class="tech-item">GitBook</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Community Section -->
+    <section class="community" id="community">
+        <div class="container">
+            <div class="community-content">
+                <h2 class="community-title" data-i18n="community_title">加入社区</h2>
+                <p class="community-desc" data-i18n="community_desc">
+                    Kudig IO 是开源项目，欢迎贡献代码、提交 Issue、参与讨论，共同推动 Kubernetes 运维生态发展
+                </p>
+                <div class="community-actions">
+                    <a href="https://github.com/kudig-io" class="btn btn-primary" target="_blank">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                        <span data-i18n="community_star">GitHub 星标</span>
+                    </a>
+                    <a href="#" class="btn btn-secondary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        <span data-i18n="community_join">加入讨论</span>
+                    </a>
+                </div>
+                <div class="community-stats">
+                    <div class="community-stat">
+                        <span class="community-stat-value">7</span>
+                        <span class="community-stat-label" data-i18n="community_repos">代码仓库</span>
+                    </div>
+                    <div class="community-stat">
+                        <span class="community-stat-value">40+</span>
+                        <span class="community-stat-label" data-i18n="community_contributors">贡献者</span>
+                    </div>
+                    <div class="community-stat">
+                        <span class="community-stat-value">Apache 2.0</span>
+                        <span class="community-stat-label" data-i18n="community_license">开源协议</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <div class="footer-logo">
+                        <svg viewBox="0 0 32 32" fill="none">
+                            <defs><linearGradient id="flogo" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#326CE5"/><stop offset="100%" style="stop-color:#4285F4"/></linearGradient></defs>
+                            <path fill="url(#flogo)" d="M16 2L3 9v14l13 7 13-7V9L16 2zm0 4.5l9 4.9v9.2l-9 4.9-9-4.9V11.4l9-4.9z"/><circle fill="#326CE5" cx="16" cy="16" r="5"/>
+                        </svg>
+                        Kudig IO
+                    </div>
+                    <p class="footer-desc" data-i18n="footer_desc">
+                        全面的 Kubernetes 诊断与运维生态系统，提供智能故障排查和集群管理解决方案
+                    </p>
                 </div>
                 <div class="footer-section">
-                    <h4>资源</h4>
+                    <h4 data-i18n="footer_projects">项目</h4>
                     <ul class="footer-links">
-                        <li><a href="#">文档</a></li>
-                        <li><a href="#">API参考</a></li>
-                        <li><a href="#">示例</a></li>
-                        <li><a href="#">博客</a></li>
+                        <li><a href="../kudig/">Kudig</a></li>
+                        <li><a href="../klaw/">Klaw</a></li>
+                        <li><a href="../k8s-guardian/">K8s Guardian</a></li>
+                        <li><a href="../etcd-guardian/">Etcd Guardian</a></li>
+                        <li><a href="../kugame/">KuGame</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
-                    <h4>社区</h4>
+                    <h4 data-i18n="footer_resources">资源</h4>
                     <ul class="footer-links">
-                        <li><a href="#">GitHub</a></li>
+                        <li><a href="../kudig-database/" data-i18n="footer_kb">知识库</a></li>
+                        <li><a href="#" data-i18n="footer_docs">文档中心</a></li>
+                        <li><a href="#" data-i18n="footer_api">API 参考</a></li>
+                        <li><a href="#" data-i18n="footer_best">最佳实践</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4 data-i18n="footer_community">社区</h4>
+                    <ul class="footer-links">
+                        <li><a href="https://github.com/kudig-io">GitHub</a></li>
+                        <li><a href="#" data-i18n="footer_contribute">贡献指南</a></li>
+                        <li><a href="#" data-i18n="footer_coc">行为准则</a></li>
+                        <li><a href="#" data-i18n="footer_changelog">更新日志</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4 data-i18n="footer_connect">联系</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Twitter/X</a></li>
                         <li><a href="#">Slack</a></li>
-                        <li><a href="#">Discord</a></li>
-                        <li><a href="#">贡献指南</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>更多</h4>
-                    <ul class="footer-links">
-                        <li><a href="#">关于我们</a></li>
-                        <li><a href="#">隐私政策</a></li>
-                        <li><a href="#">服务条款</a></li>
-                        <li><a href="#">联系我们</a></li>
+                        <li><a href="#" data-i18n="footer_mail">邮件列表</a></li>
+                        <li><a href="#" data-i18n="footer_contact">联系我们</a></li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2026 Kudig. Licensed under Apache 2.0.</p>
+                <p class="footer-copyright">© 2026 Kudig IO. <span data-i18n="footer_license">Apache 2.0 和 MIT 开源协议</span></p>
+                <div class="footer-social">
+                    <a href="https://github.com/kudig-io" target="_blank">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                    </a>
+                    <a href="#">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>
+                    </a>
+                    <a href="#">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                    </a>
+                </div>
             </div>
         </div>
     </footer>
+
+    <script>
+        // i18n Translations
+        const i18n = {
+            zh: {
+                page_title: 'Kudig IO - Kubernetes 智能诊断与运维生态系统',
+                meta_desc: 'Kudig IO 是一个全面的 Kubernetes 诊断与运维生态系统，提供智能故障排查、集群管理、etcd 备份和 AI 辅助运维功能。',
+                nav_ecosystem: '生态系统',
+                nav_features: '特性',
+                nav_architecture: '架构',
+                nav_usecases: '应用场景',
+                nav_community: '社区',
+                nav_github: 'GitHub',
+                hero_badge: '生产级 Kubernetes 运维平台',
+                hero_title_1: '智能',
+                hero_title_highlight: 'Kubernetes',
+                hero_title_2: '运维',
+                hero_desc: '全面的 Kubernetes 诊断与运维生态系统，提供智能故障排查、集群管理、etcd 备份和 AI 辅助运维功能。为生产环境而生。',
+                hero_btn_primary: '探索生态系统',
+                hero_btn_secondary: 'GitHub 查看',
+                stat_projects: '核心项目',
+                stat_docs: '技术文档',
+                stat_domains: '技术领域',
+                demo_cmd1: 'kudig diagnose --cluster prod',
+                demo_output1: '节点诊断完成',
+                demo_output2: '80+ 规则已评估',
+                demo_output3: '发现问题 3 个',
+                demo_cmd2: 'klaw status --web',
+                demo_output4: 'Web UI 运行在 :8080',
+                ecosystem_label: '生态系统',
+                ecosystem_title: '模块化架构，统一体验',
+                ecosystem_desc: '七个集成项目涵盖 Kubernetes 运维的各个方面，从节点级诊断到集群级管理',
+                status_production: '生产可用',
+                status_active: '活跃开发',
+                status_comprehensive: '全面覆盖',
+                kudig_desc: 'Kubernetes 节点诊断工具，内置 80+ 检测规则，支持离线与在线双模式，自动生成诊断报告',
+                kudig_feat1: 'Bash + Go 双版本',
+                kudig_feat2: 'YAML 规则引擎',
+                kudig_feat3: 'Helm 部署支持',
+                klaw_desc: '现代化 Kubernetes Web 管理平台，集成钉钉/飞书，提供实时监控和告警功能',
+                klaw_feat1: '多集群管理',
+                klaw_feat2: 'IM 平台集成',
+                klaw_feat3: 'OpenClaw 技能',
+                guardian_desc: 'AI 驱动的运维助手，提供终端可视化界面、集群监控和智能诊断',
+                guardian_feat1: '终端 UI',
+                guardian_feat2: 'AI 智能诊断',
+                guardian_feat3: 'RBAC 分析',
+                etcd_desc: '生产级 etcd 备份 Operator，支持增量快照、多租户隔离和云存储',
+                etcd_feat1: '直接 etcd 快照',
+                etcd_feat2: '增量备份',
+                etcd_feat3: '多云存储',
+                kugame_desc: '游戏化 Kubernetes 学习工具，武侠故事驱动，内置战斗答题系统',
+                kugame_feat1: '200+ kubectl 命令',
+                kugame_feat2: '修仙成长体系',
+                kugame_feat3: '战斗模式',
+                db_desc: 'Kubernetes 全域知识库，涵盖 40 个技术领域、950+ 文档和 AI 基础设施专题',
+                db_feat1: '40 个技术领域',
+                db_feat2: '生产实践指南',
+                db_feat3: '多维度索引',
+                link_docs: '文档',
+                link_code: '代码',
+                link_browse: '浏览',
+                features_label: '核心特性',
+                features_title: '为生产环境而生',
+                features_desc: '企业级能力设计，面向关键任务 Kubernetes 环境',
+                feat1_title: '全栈覆盖',
+                feat1_desc: '从节点诊断到集群管理，从 etcd 备份到灾难恢复，端到端覆盖',
+                feat2_title: '实时监控',
+                feat2_desc: '基于 Watch 机制的事件流，实时掌握集群状态和资源变更',
+                feat3_title: 'AI 驱动',
+                feat3_desc: 'AI 辅助根因分析和修复建议，由大语言模型提供智能支持',
+                feat4_title: '企业安全',
+                feat4_desc: 'RBAC 控制、审计日志、加密传输，符合企业安全合规要求',
+                arch_label: '系统架构',
+                arch_title: '分层架构设计',
+                arch_desc: '关注点分离的模块化组件，协同工作',
+                layer_interface: '交互层',
+                layer_core: '核心服务',
+                layer_infra: '基础设施',
+                arch_web: 'Web UI',
+                arch_terminal: '终端工具',
+                arch_game: '游戏化',
+                arch_im: 'IM 集成',
+                arch_diag: '诊断引擎',
+                arch_backup: '备份',
+                arch_knowledge: '知识库',
+                arch_store: '数据存储',
+                arch_object: '对象存储',
+                arch_metrics: '监控指标',
+                cases_label: '应用场景',
+                cases_title: '解决实际问题',
+                cases_desc: 'Kudig IO 为运维团队创造价值的典型场景',
+                case1_title: '故障诊断',
+                case1_desc: '快速诊断节点异常、Pod 崩溃、网络故障和存储问题，自动生成根因分析报告',
+                case2_title: '集群管理',
+                case2_desc: '多集群统一纳管，实时监控资源使用、性能指标和事件告警，支持钉钉/飞书通知',
+                case3_title: '灾难恢复',
+                case3_desc: 'etcd 自动备份、增量快照、跨地域容灾，一键恢复保障业务连续性',
+                case4_title: '智能运维',
+                case4_desc: 'AI 辅助根因分析、故障预测、自动化修复，降低 MTTR 提升运维效率',
+                case5_title: '团队赋能',
+                case5_desc: '通过 KuGame 游戏化学习，帮助团队快速掌握 Kubernetes 命令和运维技能',
+                case6_title: '安全合规',
+                case6_desc: 'RBAC 审计、安全策略检查、合规报告生成，满足企业安全合规要求',
+                tech_label: '技术栈',
+                tech_title: '云原生技术',
+                tech_desc: '采用现代化云原生技术栈，确保高性能、可靠性和可扩展性',
+                tech_lang: '开发语言',
+                tech_frontend: '前端',
+                tech_storage: '存储',
+                tech_rule: '规则引擎',
+                community_title: '加入社区',
+                community_desc: 'Kudig IO 是开源项目，欢迎贡献代码、提交 Issue、参与讨论，共同推动 Kubernetes 运维生态发展',
+                community_star: 'GitHub 星标',
+                community_join: '加入讨论',
+                community_repos: '代码仓库',
+                community_contributors: '贡献者',
+                community_license: '开源协议',
+                footer_desc: '全面的 Kubernetes 诊断与运维生态系统，提供智能故障排查和集群管理解决方案',
+                footer_projects: '项目',
+                footer_resources: '资源',
+                footer_kb: '知识库',
+                footer_docs: '文档中心',
+                footer_api: 'API 参考',
+                footer_best: '最佳实践',
+                footer_community: '社区',
+                footer_contribute: '贡献指南',
+                footer_coc: '行为准则',
+                footer_changelog: '更新日志',
+                footer_connect: '联系',
+                footer_mail: '邮件列表',
+                footer_contact: '联系我们',
+                footer_license: 'Apache 2.0 和 MIT 开源协议'
+            },
+            en: {
+                page_title: 'Kudig IO - Kubernetes Intelligent Diagnostics & Operations Ecosystem',
+                meta_desc: 'Kudig IO is a comprehensive Kubernetes diagnostics and operations ecosystem providing intelligent troubleshooting, cluster management, etcd backup, and AI-assisted operations.',
+                nav_ecosystem: 'Ecosystem',
+                nav_features: 'Features',
+                nav_architecture: 'Architecture',
+                nav_usecases: 'Use Cases',
+                nav_community: 'Community',
+                nav_github: 'GitHub',
+                hero_badge: 'Production-Ready Kubernetes Operations Platform',
+                hero_title_1: 'Intelligent',
+                hero_title_highlight: 'Kubernetes',
+                hero_title_2: 'Operations',
+                hero_desc: 'A comprehensive ecosystem for Kubernetes diagnostics, cluster management, etcd backup, and AI-assisted operations. Built for production environments.',
+                hero_btn_primary: 'Explore Ecosystem',
+                hero_btn_secondary: 'View on GitHub',
+                stat_projects: 'Core Projects',
+                stat_docs: 'Documentation',
+                stat_domains: 'Tech Domains',
+                demo_cmd1: 'kudig diagnose --cluster prod',
+                demo_output1: 'Node Diagnostics Complete',
+                demo_output2: '80+ Rules Evaluated',
+                demo_output3: '3 Issues Detected',
+                demo_cmd2: 'klaw status --web',
+                demo_output4: 'Web UI Running on :8080',
+                ecosystem_label: 'Ecosystem',
+                ecosystem_title: 'Modular Architecture, Unified Experience',
+                ecosystem_desc: 'Seven integrated projects covering every aspect of Kubernetes operations, from node-level to cluster-wide management',
+                status_production: 'Production',
+                status_active: 'Active Dev',
+                status_comprehensive: 'Comprehensive',
+                kudig_desc: 'Kubernetes node diagnostics with 80+ detection rules, offline/online dual modes, and automated reporting',
+                kudig_feat1: 'Bash + Go Dual',
+                kudig_feat2: 'YAML Rule Engine',
+                kudig_feat3: 'Helm Deployment',
+                klaw_desc: 'Modern Web UI for Kubernetes with DingTalk/Feishu integration and real-time monitoring',
+                klaw_feat1: 'Multi-cluster',
+                klaw_feat2: 'IM Integration',
+                klaw_feat3: 'OpenClaw Skills',
+                guardian_desc: 'AI-powered ops assistant with terminal UI, cluster monitoring and intelligent diagnostics',
+                guardian_feat1: 'Terminal UI',
+                guardian_feat2: 'AI Diagnostics',
+                guardian_feat3: 'RBAC Analysis',
+                etcd_desc: 'Production-grade etcd backup Operator with incremental snapshots and cloud storage',
+                etcd_feat1: 'Direct Snapshots',
+                etcd_feat2: 'Incremental Backup',
+                etcd_feat3: 'Multi-cloud Storage',
+                kugame_desc: 'Gamified K8s learning with wuxia story progression and battle quiz system',
+                kugame_feat1: '200+ Commands',
+                kugame_feat2: 'Cultivation System',
+                kugame_feat3: 'Battle Mode',
+                db_desc: 'Comprehensive K8s knowledge base covering 40 tech domains and 950+ documents',
+                db_feat1: '40 Tech Domains',
+                db_feat2: 'Production Guides',
+                db_feat3: 'Multi-dimension Index',
+                link_docs: 'Docs',
+                link_code: 'Code',
+                link_browse: 'Browse',
+                features_label: 'Features',
+                features_title: 'Built for Production',
+                features_desc: 'Enterprise-grade capabilities for mission-critical Kubernetes environments',
+                feat1_title: 'Full Stack',
+                feat1_desc: 'End-to-end coverage from node diagnostics to cluster management and disaster recovery',
+                feat2_title: 'Real-time',
+                feat2_desc: 'Watch-based event streaming for instant cluster state and resource visibility',
+                feat3_title: 'AI-Powered',
+                feat3_desc: 'Intelligent root cause analysis with LLM-powered recommendations',
+                feat4_title: 'Enterprise Security',
+                feat4_desc: 'RBAC controls, audit logging, encryption for enterprise compliance',
+                arch_label: 'Architecture',
+                arch_title: 'Layered Architecture Design',
+                arch_desc: 'Clean separation of concerns with modular components',
+                layer_interface: 'Interface',
+                layer_core: 'Core Services',
+                layer_infra: 'Infrastructure',
+                arch_web: 'Web UI',
+                arch_terminal: 'Terminal',
+                arch_game: 'Gamified',
+                arch_im: 'IM Integration',
+                arch_diag: 'Diagnostics',
+                arch_backup: 'Backup',
+                arch_knowledge: 'Knowledge',
+                arch_store: 'Data Store',
+                arch_object: 'Object Storage',
+                arch_metrics: 'Metrics',
+                cases_label: 'Use Cases',
+                cases_title: 'Solve Real Problems',
+                cases_desc: 'Typical scenarios where Kudig IO delivers value to operations teams',
+                case1_title: 'Troubleshooting',
+                case1_desc: 'Rapidly diagnose node issues, Pod crashes, network and storage problems with automated RCA',
+                case2_title: 'Cluster Management',
+                case2_desc: 'Unified multi-cluster management with real-time monitoring and IM notifications',
+                case3_title: 'Disaster Recovery',
+                case3_desc: 'Automated etcd backups, incremental snapshots, cross-region DR with one-click restore',
+                case4_title: 'Intelligent Ops',
+                case4_desc: 'AI-assisted root cause analysis, predictive maintenance, automated remediation',
+                case5_title: 'Team Enablement',
+                case5_desc: 'Upskill teams with gamified learning and comprehensive best practice guides',
+                case6_title: 'Security & Compliance',
+                case6_desc: 'RBAC auditing, security checks, compliance reporting for enterprise requirements',
+                tech_label: 'Technology',
+                tech_title: 'Cloud-Native Stack',
+                tech_desc: 'Modern cloud-native technologies for performance, reliability and scalability',
+                tech_lang: 'Languages',
+                tech_frontend: 'Frontend',
+                tech_storage: 'Storage',
+                tech_rule: 'Rule Engine',
+                community_title: 'Join the Community',
+                community_desc: 'Kudig IO is open source. We welcome contributions, issues, and discussions.',
+                community_star: 'Star on GitHub',
+                community_join: 'Join Discussions',
+                community_repos: 'Repositories',
+                community_contributors: 'Contributors',
+                community_license: 'License',
+                footer_desc: 'A comprehensive Kubernetes diagnostics and operations ecosystem providing intelligent solutions',
+                footer_projects: 'Projects',
+                footer_resources: 'Resources',
+                footer_kb: 'Knowledge Base',
+                footer_docs: 'Documentation',
+                footer_api: 'API Reference',
+                footer_best: 'Best Practices',
+                footer_community: 'Community',
+                footer_contribute: 'Contributing',
+                footer_coc: 'Code of Conduct',
+                footer_changelog: 'Changelog',
+                footer_connect: 'Connect',
+                footer_mail: 'Mailing List',
+                footer_contact: 'Contact',
+                footer_license: 'Apache 2.0 and MIT License'
+            }
+        };
+
+        let currentLang = localStorage.getItem('kudig-lang') || 'zh';
+
+        function switchLang(lang) {
+            if (lang === currentLang) return;
+            
+            // Add switching animation
+            document.body.style.opacity = '0.8';
+            
+            setTimeout(() => {
+                currentLang = lang;
+                localStorage.setItem('kudig-lang', lang);
+                applyTranslations();
+                updateLangSwitcher();
+                document.body.style.opacity = '1';
+            }, 150);
+        }
+
+        function applyTranslations() {
+            const elements = document.querySelectorAll('[data-i18n]');
+            elements.forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (i18n[currentLang] && i18n[currentLang][key]) {
+                    el.textContent = i18n[currentLang][key];
+                }
+            });
+            
+            // Update html lang attribute
+            document.documentElement.lang = currentLang === 'zh' ? 'zh-CN' : 'en';
+        }
+
+        function updateLangSwitcher() {
+            const flag = document.getElementById('currentFlag');
+            const langText = document.getElementById('currentLang');
+            const checkZh = document.getElementById('check-zh');
+            const checkEn = document.getElementById('check-en');
+            const options = document.querySelectorAll('.lang-option');
+            
+            flag.textContent = currentLang === 'zh' ? '🇨🇳' : '🇺🇸';
+            langText.textContent = currentLang === 'zh' ? '中文' : 'English';
+            
+            checkZh.style.opacity = currentLang === 'zh' ? '1' : '0';
+            checkEn.style.opacity = currentLang === 'en' ? '1' : '0';
+            
+            options.forEach(opt => {
+                if (opt.dataset.lang === currentLang) {
+                    opt.classList.add('active');
+                } else {
+                    opt.classList.remove('active');
+                }
+            });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            applyTranslations();
+            updateLangSwitcher();
+        });
+
+        // Navbar scroll effect
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+    </script>
 </body>
 </html>
